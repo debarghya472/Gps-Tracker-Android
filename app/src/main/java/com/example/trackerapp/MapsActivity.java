@@ -9,9 +9,13 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -31,16 +35,21 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+import java.io.IOException;
+import java.util.List;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,GoogleMap.OnMapLongClickListener {
 
     private GoogleMap mMap;
     private FusedLocationProviderClient client;
     private LocationRequest locationRequest;
     private Marker marker;
+    private Geocoder geocoder;
     private double Lat;
     private double Lon;
 
@@ -49,6 +58,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+        geocoder =new Geocoder(this);
 
         locationRequest = LocationRequest.create();
         locationRequest.setInterval(500);
@@ -107,6 +118,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @SuppressLint("MissingPermission")
     private void setCurrentLocationMarker(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        Lat=location.getLatitude();
+        Lon=location.getLongitude();
 
         if(marker==null){
             MarkerOptions markerOptions = new MarkerOptions();
@@ -116,11 +129,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             markerOptions.anchor((float) 0.5, (float) 0.5);
             marker= mMap.addMarker(markerOptions);
             mMap.setMyLocationEnabled(true);
+            Log.d("Tag","zoomed !!");
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         }else{
             marker.setPosition(latLng);
             marker.setRotation(location.getBearing());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+//            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         }
     }
 
@@ -169,13 +183,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng current = new LatLng(Lat, Lon);
-        MarkerOptions options =new MarkerOptions().position(current)
-                .title("Marker in Kolkata");
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(current));
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current,15));
+        mMap.setOnMapLongClickListener(this);
+
+        // Add a marker in Sydney and move the camera
+//        LatLng current = new LatLng(Lat, Lon);
+//        MarkerOptions options =new MarkerOptions().position(current)
+//                .title("Marker in Kolkata");
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(current));
+
+//        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current,15));
 //    mMap.setMyLocationEnabled(true);
 //        mMap.addMarker(options);
     }
@@ -185,6 +202,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(requestCode==4){
             if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED)
                 getCurrentLocation();
+        }
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses.size() > 0) {
+                Address address = addresses.get(0);
+                String streetAddress = address.getAddressLine(0);
+                mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title(streetAddress)
+                        .draggable(true)
+                );
+                mMap.addPolyline(new PolylineOptions()
+                .add(new LatLng(Lat,Lon),latLng)
+                .width(10f)
+                .color(Color.BLUE)
+                .geodesic(true)
+                );
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
