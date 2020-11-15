@@ -4,14 +4,23 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.gson.annotations.SerializedName;
 
 public class DirectionResponse {
-    @SerializedName("polylines")
-    private Polyline polyline;
 
-    public Polyline getPolyline() {
-        return polyline;
+    @SerializedName("status")
+    private String status;
+
+    @SerializedName("routes")
+    private RouteResponse routeResponse;
+
+    public String getStatus() {
+        return status;
     }
 
-    public DirectionResponse(Polyline polyline) {
-        this.polyline = polyline;
+    public RouteResponse getRouteResponse() {
+        return routeResponse;
+    }
+
+    public DirectionResponse(String status, RouteResponse routeResponse) {
+        this.status = status;
+        this.routeResponse = routeResponse;
     }
 }

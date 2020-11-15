@@ -16,7 +16,13 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.example.trackerapp.network.DirectionResponse;
+import com.example.trackerapp.network.JsonPlaceHolderApi;
+import com.example.trackerapp.network.POLYline;
+import com.example.trackerapp.network.RetrofitClientInstance;
+import com.example.trackerapp.network.StepResponse;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -35,6 +41,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -43,12 +50,20 @@ import com.google.android.gms.tasks.Task;
 import java.io.IOException;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,GoogleMap.OnMapLongClickListener {
 
     private GoogleMap mMap;
     private FusedLocationProviderClient client;
     private LocationRequest locationRequest;
     private Marker marker;
+    private JsonPlaceHolderApi jsonPlaceHolderApi;
+    private Polyline polyline;
+
     private Geocoder geocoder;
     private double Lat;
     private double Lon;
@@ -217,12 +232,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .title(streetAddress)
                         .draggable(true)
                 );
-                mMap.addPolyline(new PolylineOptions()
-                .add(new LatLng(Lat,Lon),latLng)
-                .width(10f)
-                .color(Color.BLUE)
-                .geodesic(true)
-                );
+//                mMap.addPolyline(new PolylineOptions()
+//                .add(new LatLng(Lat,Lon),latLng)
+//                .width(10f)
+//                .color(Color.BLUE)
+//                .geodesic(true)
+//                );
+                Retrofit retrofit = RetrofitClientInstance.getRetrofitInstance();
+                jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
+
+                Call<DirectionResponse> call =jsonPlaceHolderApi.getDirection(Lat,Lon,latLng.latitude,latLng.longitude);
+                call.enqueue(new Callback<DirectionResponse>() {
+                    @Override
+                    public void onResponse(Call<DirectionResponse> call, Response<DirectionResponse> response) {
+                        if(response.isSuccessful()) {
+                            POLYline polYline = response.body().getRouteResponse().getLegsResponse().getStepResponse().getPolyline();
+                            List<String>  points= polYline.getPointsList();
+
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<DirectionResponse> call, Throwable t) {
+                        Toast.makeText(MapsActivity.this,t.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         } catch (IOException e) {
             e.printStackTrace();

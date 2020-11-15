@@ -1,4 +1,4 @@
-package com.example.trackerapp;
+package com.example.trackerapp.network;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
