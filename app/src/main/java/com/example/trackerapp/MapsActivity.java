@@ -68,8 +68,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient client;
     private LocationRequest locationRequest;
     private Marker marker;
+    private Marker destinationMarker;
     private JsonPlaceHolderApi jsonPlaceHolderApi;
-    private List<Polyline> polylines=null;
+    private Polyline polylines=null;
 
     private Geocoder geocoder;
     private double Lat;
@@ -234,7 +235,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (addresses.size() > 0) {
                 Address address = addresses.get(0);
                 String streetAddress = address.getAddressLine(0);
-                mMap.addMarker(new MarkerOptions()
+                if(destinationMarker !=null){
+                    destinationMarker.remove();
+                }
+                destinationMarker=mMap.addMarker(new MarkerOptions()
                         .position(latLng)
                         .title(streetAddress)
                         .draggable(true)
@@ -269,7 +273,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .withListener(this)
                         .alternativeRoutes(true)
                         .waypoints(new LatLng(Lat,Lon),latLng)
-                        .key("AIzaSyBdicgnEWaT0DAokMVL69Rl0jAygCdpC_M")
+                        .key("AIzaSyDgHNRKfW5b-6SaZqJu1w-1SzhiD2TJgDU")
                         .build();
                 routing.execute();
             }
@@ -294,20 +298,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(MapsActivity.this,"Success.",Toast.LENGTH_LONG).show();
         CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(Lat,Lon));
         CameraUpdate zoom = CameraUpdateFactory.zoomTo(16);
-        if(polylines!=null) {
-            polylines.clear();
+
+        if(polylines != null){
+            polylines.remove();
         }
+
         PolylineOptions polyOptions = new PolylineOptions();
 
         for (int i = 0; i <arrayList.size(); i++) {
 
             if (i == short1) {
                 polyOptions.color(getResources().getColor(R.color.colorAccent));
-                polyOptions.width(10);
+                polyOptions.width(14);
                 polyOptions.addAll(arrayList.get(short1).getPoints());
-                Polyline polyline = mMap.addPolyline(polyOptions);
-                mMap.addPolyline(polyOptions);
-
+                polylines = mMap.addPolyline(polyOptions);
             }
         }
 
