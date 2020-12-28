@@ -44,6 +44,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -154,6 +156,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMyLocationEnabled(true);
             Log.d("Tag","zoomed !!");
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+
+            Circle circle = mMap.addCircle(new CircleOptions()
+                    .center(latLng)
+                    .radius(100)
+                    .strokeColor(Color.RED)
+                    .fillColor(Color.BLUE));
         }else{
             marker.setPosition(latLng);
             marker.setRotation(location.getBearing());
